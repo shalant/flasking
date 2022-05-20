@@ -1,4 +1,11 @@
 pipeline {
+
+  environment {
+    registry = 'dougrosenbergdev/flask_app'
+    registryCredentials = 'docker'
+    cluster_name = 'skillstorm'
+  }
+
   agent {
     node {
       label 'docker'
@@ -12,28 +19,21 @@ pipeline {
         git(url: 'https://github.com/shalant/flasking.git', branch: 'master')
       }
     }
-    stage('Docker Login') {
+    stage('Build Stage') {
       steps {
-        sh 'docker login -u dougrosenbergdev -p a1c8b9c4-ef65-4030-8e69-d90f13ab9795'
+        script {
+          dockerImage = docker.build(registry)
+        }
       }
     }
-    stage('Build') {
+    stage('Deploy Stage') {
       steps {
-        echo 'building'
-        sh 'docker build -t dougrosenbergdev/flask_app .'
+        script {
+          docker.withRegistry('', registryCredentials) {
+            dockerImage.push()
+          }
+        }
       }
     }
-    stage('Docker Push') {
-      steps {
-        sh 'docker push dougrosenbergdev/flask_app'
-      }
-    }
-     stage('Clean Up') {
-      steps {
-        echo 'cleaning'
-        sh 'docker image prune -af'
-      }
-    }
-
   }
 }
