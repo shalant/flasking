@@ -10,7 +10,6 @@ pipeline {
     node {
       label 'docker'
     }
-
   }
 
   stages {
